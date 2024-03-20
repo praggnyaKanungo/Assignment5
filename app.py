@@ -109,22 +109,34 @@ app.layout = html.Div(children=[
      Input('year-slider', 'value')]
 )
 def update_graph(selected_countries, selected_years):
+    
     # This part of my code filters the DataFrame based on the user's selections:
     # It makes sure it only includes the rows where the 'country' column matches any of the selected countries.
     # It makes sure it only includes the rows where the 'year' column falls within the selected year range.
+
     filtered_df = df_long[(df_long['country'].isin(selected_countries)) & 
                           (df_long['year'] >= selected_years[0]) & 
                           (df_long['year'] <= selected_years[1])]
-
+    
     # Then I am simply using Plotly Express to create a line plot from the filtered DataFrame (we learned this in class!)
     # The plot shows GDP per capita ('gdpPercap') on the y-axis and year on the x-axis, 
-    
     fig = px.line(filtered_df, x="year", y="gdpPercap", color="country",
                   title="GDP Per Capita Over Time",
                   labels={"gdpPercap": "GDP per Capita", "year": "Year"})
+
+    # Here I am determine the min and max values for GDP per capita within the filtered dataset
+    # I am doing this in order to make sure my y-axis looks neat and sorted
+    min_gdp = filtered_df['gdpPercap'].min()
+    max_gdp = filtered_df['gdpPercap'].max()
+
+    # I am using this technique: I am setting the y-axis range with a small buffer
+    buffer = (max_gdp - min_gdp) * 0.1  # 10% buffer on each side is conventional for many  small dashboards from what I learned in high school
+    fig.update_yaxes(range=[min_gdp - buffer, max_gdp + buffer])
+    
     fig.update_layout(transition_duration=500) # this is for smooth transition
     
     return fig
+
 
 # This is the final line that runs the app if this script is executed as the main program
 if __name__ == '__main__':
