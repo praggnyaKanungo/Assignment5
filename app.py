@@ -17,7 +17,14 @@ stylesheets = ['https://cdn.jsdelivr.net/npm/picnic']
 df = pd.read_csv("data/gdp_pcap.csv")
 # i am using melt to do that
 df_long = df.melt(id_vars=['country'], var_name='year', value_name='gdpPercap')
-df_long['year'] = pd.to_numeric(df_long['year'])
+
+# Converting 'country' column to a categorical data type
+df['country'] = df['country'].astype('category')
+# Converting 'year' to numeric
+df_long['year'] = pd.to_numeric(df_long['year'], errors='coerce')
+
+# Converting 'gdpPercap' to numeric
+df_long['gdpPercap'] = pd.to_numeric(df_long['gdpPercap'], errors='coerce')
 
 #then I am trying understand the year values in the data set
 # First I am calculateing the minimum and maximum year from the dataset for the year slider
@@ -102,7 +109,6 @@ app.layout = html.Div(children=[
 # The following is basically the part I changed from assignment 4
 # this following part defines the callback functio
 #this is the function that that updates the line plot based on the selected countries and year range. 
-# i've also added dode to filter the years
 @app.callback(
     Output('gdp-percap-graph', 'figure'),
     [Input('country-dropdown', 'value'),
@@ -113,23 +119,24 @@ def update_graph(selected_countries, selected_years):
     # This part of my code filters the DataFrame based on the user's selections:
     # It makes sure it only includes the rows where the 'country' column matches any of the selected countries.
     # It makes sure it only includes the rows where the 'year' column falls within the selected year range.
-
     filtered_df = df_long[(df_long['country'].isin(selected_countries)) & 
                           (df_long['year'] >= selected_years[0]) & 
                           (df_long['year'] <= selected_years[1])]
 
+    # Trying tosort the filtered DataFrame by 'year'
     filtered_df = filtered_df.sort_values(by='year')
+    
     # Then I am simply using Plotly Express to create a line plot from the filtered DataFrame (we learned this in class!)
     # The plot shows GDP per capita ('gdpPercap') on the y-axis and year on the x-axis, 
     fig = px.line(filtered_df, x="year", y="gdpPercap", color="country",
                   title="GDP Per Capita Over Time",
                   labels={"gdpPercap": "GDP per Capita", "year": "Year"})
 
-    
-    fig.update_layout(transition_duration=500) # this is for smooth transition
-    
-    return fig
 
+    # For smooth transition
+    fig.update_layout(transition_duration=500)
+
+    return fig
 
 # This is the final line that runs the app if this script is executed as the main program
 if __name__ == '__main__':
