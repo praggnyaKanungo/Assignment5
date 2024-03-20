@@ -117,8 +117,8 @@ def update_graph(selected_countries, selected_years):
     filtered_df = df_long[(df_long['country'].isin(selected_countries)) & 
                           (df_long['year'] >= selected_years[0]) & 
                           (df_long['year'] <= selected_years[1])]
-        
-    filtered_df = filtered_df.sort_values(by=['year', 'gdpPercap'])
+
+    filtered_df = filtered_df.sort_values(by='year')
     # Then I am simply using Plotly Express to create a line plot from the filtered DataFrame (we learned this in class!)
     # The plot shows GDP per capita ('gdpPercap') on the y-axis and year on the x-axis, 
     fig = px.line(filtered_df, x="year", y="gdpPercap", color="country",
