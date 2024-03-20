@@ -23,7 +23,6 @@ server = app.server
 
 app.title = "Gapminder GDP Per Capita Analysis"
 
-# Initial figure setup, could be an empty figure or a default plot
 fig = px.line(df_long, x="year", y="gdpPercap", color="country", title="GDP Per Capita Over Time",
               labels={"gdpPercap": "GDP per Capita", "year": "Year"})
 fig.update_layout(transition_duration=500)
