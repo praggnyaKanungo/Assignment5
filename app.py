@@ -114,30 +114,47 @@ app.layout = html.Div(children=[
     [Input('country-dropdown', 'value'),
      Input('year-slider', 'value')]
 )
+#This is the function that updates the plot based on selected countries and years
 def update_graph(selected_countries, selected_years):
-    
+    # First i am checking if selected_countries is a list, if not, I am converting it to one list
+    #Why am i doing this? its because iam using.isin after this for filtering properly and its expects lists
+    if not isinstance(selected_countries, list):
+        selected_countries = [selected_countries]  # Wrapping the single country in a list
+
     # This part of my code filters the DataFrame based on the user's selections:
     # It makes sure it only includes the rows where the 'country' column matches any of the selected countries.
     # It makes sure it only includes the rows where the 'year' column falls within the selected year range.
-    filtered_df = df_long[(df_long['country'].isin(selected_countries)) & 
-                          (df_long['year'] >= selected_years[0]) & 
+    filtered_df = df_long[df_long['country'].isin(selected_countries) &
+                          (df_long['year'] >= selected_years[0]) &
                           (df_long['year'] <= selected_years[1])]
+    # I ran my app before this and i realized that theres some chunky lines or discontinous lines.
+    #i cant just drop this data because that doesn't help the data visualization
+    #thats why I am going to aggregate teh data (by doing the mean gdp for missing data just to help the data visualization)
+    # I will be replacing missing values in the 'gdpPercap' column with the mean GDP per capita of the respective country
+    # I am using the transform function applies the lambda to each group of rows with the same country
+    #what is does is that it basically puts the mean to fill in the missing data for each country group
+    filtered_df['gdpPercap'] = filtered_df.groupby('country')['gdpPercap'].transform(lambda x: x.fillna(x.mean()))
 
-    # Trying tosort the filtered DataFrame by 'year'
+    # In case anything is still NaN, I am dropping the rows where 'gdpPercap' is still NaN
+    filtered_df = filtered_df.dropna(subset=['gdpPercap'])
+
+    # Sorting by 'year' to ensure that the lines on the plot are drawn nicely
     filtered_df = filtered_df.sort_values(by='year')
-    
+
     # Then I am simply using Plotly Express to create a line plot from the filtered DataFrame (we learned this in class!)
     # The plot shows GDP per capita ('gdpPercap') on the y-axis and year on the x-axis, 
     fig = px.line(filtered_df, x="year", y="gdpPercap", color="country",
-                  title="GDP Per Capita Over Time",
-                  labels={"gdpPercap": "GDP per Capita", "year": "Year"})
-
+                  title="GDP Per Capita Over Time",  # Set the title of the plot
+                  labels={"gdpPercap": "GDP per Capita", "year": "Year"})  # Set the labels of the axes
 
     # For smooth transition
     fig.update_layout(transition_duration=500)
 
+    # Return the figure object which contains the line plot
     return fig
 
-# This is the final line that runs the app if this script is executed as the main program
+
+
+
 if __name__ == '__main__':
     app.run_server(debug=True)
